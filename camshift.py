@@ -24,11 +24,10 @@ class CamShiftDemo:
 
     def hue_histogram_as_image(self, hist):
         """ Returns a nice representation of a hue histogram """
-
         histimg_hsv = cv.CreateImage( (320,200), 8, 3)
-        
         mybins = cv.CloneMatND(hist.bins)
         cv.Log(mybins, mybins)
+        
         (_, hi, _, _) = cv.MinMaxLoc(mybins)
         cv.ConvertScale(mybins, mybins, 255. / hi)
 
@@ -88,7 +87,14 @@ class CamShiftDemo:
                 cv.ConvertScale(frame, frame, 0.5)
                 cv.Copy(save, sub)
                 x,y,w,h = self.selection
-                cv.Rectangle(frame, (x,y), (x+w,y+h), (255,255,255))
+                cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255))
+
+                # print coordinate of centroid
+                center_x = int(x+w/2)
+                center_y = int(y+h/2)
+                roi_box = (center_x, center_y)
+                print roi_box
+                
 
                 sel = cv.GetSubRect(self.hue, self.selection )
                 cv.CalcArrHist( [sel], hist, 0)
@@ -97,6 +103,7 @@ class CamShiftDemo:
                     cv.ConvertScale(hist.bins, hist.bins, 255. / max_val)
             elif self.track_window and is_rect_nonzero(self.track_window):
                 cv.EllipseBox( frame, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
+
 
             if not backproject_mode:
                 cv.ShowImage( "CamShiftDemo", frame )
@@ -110,7 +117,6 @@ class CamShiftDemo:
             elif c == ord("b"):
                 backproject_mode = not backproject_mode
 
-            print cv.Rectangle(frame, (x,y), (x+w,y+h), (255,255,255))
 
 
 
