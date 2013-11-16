@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import cv
-# import cv2
+import numpy 
 
 def is_rect_nonzero(r):
     (_,_,w,h) = r
@@ -87,8 +87,9 @@ class CamShiftDemo:
 
             # Convert to HSV and keep the hue
             # cv.CreateImage(size, depth, channels) → image
-            # channels<-Number of channels per pixel
+            # channels <- Number of channels per pixel
             hsv = cv.CreateImage(cv.GetSize(frame), 8, 3)
+
             # converting back
             cv.CvtColor(frame, hsv, cv.CV_BGR2HSV)
 
@@ -126,27 +127,35 @@ class CamShiftDemo:
                 x,y,w,h = self.selection
                 cv.Rectangle(frame, (x,y), (x+w,y+h), (255,255,255))
 
-
                 # cv.GetSubRect(arr, rect) → submat
                 # The function returns header, corresponding to a specified rectangle of the input array. In other words, it allows the user to treat a rectangular part of input array as a stand-alone array. ROI is taken into account by the function so the sub-array of ROI is actually extracted.
                 sel = cv.GetSubRect(self.hue, self.selection )
                 #The functions calcHist calculate the histogram of one or more arrays. The elements of a tuple used to increment a histogram bin are taken from the corresponding input arrays at the same location. The sample below shows how to compute a 2D Hue-Saturation histogram for a color image.
                 # cv.CalcHist(image, hist, accumulate=0, mask=None) → None
                 cv.CalcArrHist( [sel], hist, 0)
+
                 #cv.GetMinMaxHistValue(hist)-> (min_value, max_value, min_idx, max_idx)
                 # The function finds the minimum and maximum histogram bins and their positions. All of output arguments are optional. Among several extremas with the same value the ones with the minimum index (in the lexicographical order) are returned. In case of several maximums or minimums, the earliest in the lexicographical order (extrema locations) is returned.
                 # min_value – Pointer to the minimum value of the histogram.
                 # max_value – Pointer to the maximum value of the histogram.
                 # min_idx – Pointer to the array of coordinates for the minimum.
-                # max_idx – Pointer to the array of coordinates for the maximum.
-
+                # max_idx – Pointer to the array of coordinates for the maximum
                 (_, max_val, _, _) = cv.GetMinMaxHistValue( hist)
                 if max_val != 0:
                     cv.ConvertScale(hist.bins, hist.bins, 255. / max_val)
+
             elif self.track_window and is_rect_nonzero(self.track_window):
                 #cv.EllipseBox(img, box, color, thickness=1, lineType=8, shift=0) → None
                 # The functions ellipse with less parameters draw an ellipse outline, a filled ellipse, an elliptic arc, or a filled ellipse sector. A piecewise-linear curve is used to approximate the elliptic arc boundary. If you need more control of the ellipse rendering, you can retrieve the curve using ellipse2Poly() and then render it with polylines() or fill it with fillPoly() . If you use the first variant of the function and want to draw the whole ellipse, not an arc, pass startAngle=0 and endAngle=360 . The figure below explains the meaning of the parameters.
                 cv.EllipseBox( frame, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
+
+                #attempt 1:
+                # convert image to grayscale, pick up contour and use conture c.centroid to get tuple (x,y)
+                #attemt 2:
+                # use track_box itself 
+                c = Contour(frame, )
+
+                # to track centroid, use moments -> dictionary, use keys to perform calculation ablove
 
 
             if not backproject_mode:

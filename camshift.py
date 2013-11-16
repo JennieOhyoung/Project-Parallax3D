@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import cv
+import cv2
+import numpy as np
 
 def is_rect_nonzero(r):
     (_,_,w,h) = r
@@ -10,17 +12,24 @@ class CamShiftDemo:
 
     def __init__(self):
         self.capture = cv.CaptureFromCAM(0)
-        cv.NamedWindow( "CamShiftDemo", 1 )
+        cv.NamedWindow( "CamShiftDemo", )
         cv.NamedWindow( "Histogram", 1 )
         cv.SetMouseCallback( "CamShiftDemo", self.on_mouse)
+
+        # find middle of screen 
+        frame = cv.QueryFrame(self.capture)
+        self.midScreenX = (frame.width/2)
+        self.midScreenY = (frame.height/2)
+        self.midScreen = (self.midScreenX, self.midScreenY)
+        print "This is the center of the screen: " + str(self.midScreen)
 
         self.drag_start = None      # Set to (x,y) when mouse starts drag
         self.track_window = None    # Set to rect when the mouse drag finishes
 
-        print( "Keys:\n"
-            "    ESC - quit the program\n"
-            "    b - switch to/from backprojection view\n"
-            "To initialize tracking, drag across the object with the mouse\n" )
+        # print( "Keys:\n"
+        #     "    ESC - quit the program\n"
+        #     "    b - switch to/from backprojection view\n"
+        #     "To initialize tracking, drag across the object with the mouse\n" )
 
     def hue_histogram_as_image(self, hist):
         """ Returns a nice representation of a hue histogram """
@@ -60,7 +69,7 @@ class CamShiftDemo:
         hist = cv.CreateHist([180], cv.CV_HIST_ARRAY, [(0,180)], 1 )
         backproject_mode = False
         while True:
-            frame = cv.QueryFrame( self.capture )
+            frame = cv.QueryFrame(self.capture)
 
             # Convert to HSV and keep the hue
             hsv = cv.CreateImage(cv.GetSize(frame), 8, 3)
@@ -89,21 +98,48 @@ class CamShiftDemo:
                 x,y,w,h = self.selection
                 cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255))
 
-                # print coordinate of centroid
-                center_x = int(x+w/2)
-                center_y = int(y+h/2)
-                roi_box = (center_x, center_y)
-                print roi_box
-                
-
                 sel = cv.GetSubRect(self.hue, self.selection )
                 cv.CalcArrHist( [sel], hist, 0)
                 (_, max_val, _, _) = cv.GetMinMaxHistValue( hist)
                 if max_val != 0:
                     cv.ConvertScale(hist.bins, hist.bins, 255. / max_val)
             elif self.track_window and is_rect_nonzero(self.track_window):
-                cv.EllipseBox( frame, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
+                cv.EllipseBox(frame, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
 
+                # print track_box (center, size, angle)
+                # cv.Circle(frame, frame.GetSize/2, 20, 3, 8, 0)
+                # cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255)
+
+                #attempt 1
+                # coordinates = cv.RotatedRect(track_box.center)
+                # print coordinates
+
+                #attempt 2
+                # # calculating centroid (x,y) and area (z)
+                # gray_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
+                # copy_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
+                # # cv.CvtColor(frame, hsv, cv.CV_BGR2HSV)   
+                # cv.CvtColor(copy_frame, gray_frame, cv.CV_BGR2GRAY)
+                # c = Contour(gray_frame, contour)
+                # # # point_x = c.centroid[0]
+                # # # point_y = c.centroid[1]
+                # # # assuming user is 1ft away from center of projection, 
+                # # # area of ellipse = math.pi * w/2 * h/2
+                # # # z = c.area 
+                # # # point_z = 
+                # print "this should be the list of centroid coordinates"
+                # print c.centroid
+                # # # print c.
+
+                #attempt 3
+                # circle(frame,track_box.center,5,Scalar(0,255,0))
+                # print track_box.center.x
+                # print track_box.center.y
+
+                center= track_box[0]
+                width_height = track_box[1]
+                print "centroid is: " + str(center)
+                # print "width and height is: " + str(lower_right_corner)
 
             if not backproject_mode:
                 cv.ShowImage( "CamShiftDemo", frame )
