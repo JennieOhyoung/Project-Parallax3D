@@ -153,9 +153,78 @@ class CamShiftDemo:
                 # convert image to grayscale, pick up contour and use conture c.centroid to get tuple (x,y)
                 #attemt 2:
                 # use track_box itself 
-                c = Contour(frame, )
+                # c = Contour(frame, )
 
                 # to track centroid, use moments -> dictionary, use keys to perform calculation ablove
+                # print track_box (center, size, angle)
+                # cv.Circle(frame, frame.GetSize/2, 20, 3, 8, 0)
+                # cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255)
+
+                #attempt 1
+                # coordinates = cv.RotatedRect(track_box.center)
+                # print coordinates
+
+                #attempt 2
+                # # calculating centroid (x,y) and area (z)
+                # gray_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
+                # copy_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
+                # # cv.CvtColor(frame, hsv, cv.CV_BGR2HSV)   
+                # cv.CvtColor(copy_frame, gray_frame, cv.CV_BGR2GRAY)
+                # c = Contour(gray_frame, contour)
+                # # # point_x = c.centroid[0]
+                # # # point_y = c.centroid[1]
+                # # # assuming user is 1ft away from center of projection, 
+                # # # area of ellipse = math.pi * w/2 * h/2
+                # # # z = c.area 
+                # # # point_z = 
+                # print "this should be the list of centroid coordinates"
+                # print c.centroid
+
+                #attempt 3
+                # circle(frame,track_box.center,5,Scalar(0,255,0))
+                # print track_box.center.x
+                # print track_box.center.y
+
+                selection_centroid = track_box[0]
+                xposition = selection_centroid[0]
+                yposition = selection_centroid[1]
+                width_height = track_box[1]
+
+
+# writes output of coordinates to seed file
+
+                #attempt 1
+                # f = open('coordinates.txt', 'w')
+                # while xposition != [] and yposition != []:
+                #     value = (xposition, yposition)
+                #     s = str(value)
+                #     f.write(s)
+                # f.close()
+
+                #attempt 2
+                # f = open('seed.txt', 'r')
+                # value = (xposition, yposition)
+                # s = str(value)
+                # with open('seed.txt', 'w') as f:
+                #     f.write(s)
+                # f.close()
+
+                with open('seed.txt', 'a') as f:
+                    f.truncate()
+                    value = (xposition, yposition)
+                    s = str(value) + '\n'
+                    f.write(s)
+                    f.write('end_of_session') with ''
+                f.close()
+
+                # print xposition
+                # print yposition
+                # selection_area = width_height[0]*width_height[1]
+                # print "The width is: " + str(width_height[0]) + " The height is: " + str(width_height[1])
+                # print "centroid is: " + str(selection_centroid)
+                # return "centroid is: " + str(selection_centroid)
+                # print "area is: " + str(selection_area)
+                # return "area is: " + str(selection_area)
 
 
             if not backproject_mode:

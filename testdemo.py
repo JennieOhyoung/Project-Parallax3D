@@ -26,14 +26,14 @@ class DemoApplication:
 	"""
 	def initGL(self, width, height):
 		print("initGL " + repr(width) + ", " + repr(height))
-		glClearColor(0.0, 0.0, 1.0, 0.0) #rbga (alpha is transparency)
-		glClearDepth(0.0) #depth buffer- constraint where closer pixle has higher priority when drawn. 
-		glShadeModel(GL_SMOOTH) 
+		glClearColor(0.0, 0.0, 1.0, 0.0)
+		glClearDepth(0.0)
+		glShadeModel(GL_SMOOTH)
 
 		# setup viewport and perspective model
 		glViewport(0, 0, width, height)
 		glMatrixMode(GL_PROJECTION)
-		glLoadIdentity() #clears up previous mat
+		glLoadIdentity()
 		gluPerspective(45.0, float(width)/float(height), 1.0, 500.0)
 		glMatrixMode(GL_MODELVIEW)
 
@@ -51,7 +51,6 @@ class DemoApplication:
 				self.swag = True
 
 		glutPostRedisplay()
-		#critical to set separate update and draw cycle. 
 
 	""" Main draw routine for the application
 	"""
@@ -59,39 +58,71 @@ class DemoApplication:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 		glLoadIdentity()
 		
-		print "help"
-		print self.xPos
+		# print "help"
+		# print self.xPos
 
-		glPushMatrix()
-		glTranslatef(self.xPos, 0.0, -10.0);
-		glColor4f(0.0, 1.0, 0.0, 1.0)
-		glBegin(GL_QUADS) #for every 4 vertex 
-		glTexCoord2f(0.0, 0.0)
-		glVertex3f(-1.0, -1.0, 0.0)
-		glTexCoord2f(0.0, 1.0)
-		glVertex3f(-1.0, 1.0, 0.0)
-		glTexCoord2f(1.0, 1.0)
-		glVertex3f(1.0, 1.0, 0.0)
-		glTexCoord2f(1.0, 0.0)
-		glVertex3f(1.0, -1.0, 0.0)
-		glEnd()
-		glPopMatrix()
+		# glTranslatef(self.xPos, 0.0, -10.0);
+		# glColor4f(0.0, 1.0, 0.0, 1.0)
+		# glBegin(GL_QUADS)
+		# glTexCoord2f(0.0, 0.0)
+		# glVertex3f(-1.0, -1.0, 0.0)
+		# glTexCoord2f(0.0, 1.0)
+		# glVertex3f(-1.0, 1.0, 0.0)
+		# glTexCoord2f(1.0, 1.0)
+		# glVertex3f(1.0, 1.0, 0.0)
+		# glTexCoord2f(1.0, 0.0)
+		# glVertex3f(1.0, -1.0, 0.0)
+		# glEnd()
 
-		glutSwapBuffers()
+		# glutSwapBuffers()
+
+
+		glColor3f(1.0, 1.0, 1.0);
+	 
+	# // Draw Body
+		glTranslatef(0.0 ,0.75, 0.0);
+		glutSolidSphere(0.75,20,20);
+	 
+	# // Draw Head
+		glTranslatef(0.0, 1.0, 0.0);
+		glutSolidSphere(0.25,20,20);
+	 
+	# // Draw Eyes
+		glPushMatrix();
+		glColor3f(0.0,0.0,0.0);
+		glTranslatef(0.05, 0.10, 0.18);
+		glutSolidSphere(0.05,10,10);
+		glTranslatef(-0.1, 0.0, 0.0);
+		glutSolidSphere(0.05,10,10);
+		glPopMatrix();
+	 
+	# // Draw Nose
+		glColor3f(1.0, 0.5, 0.5);
+		glRotatef(0.0,1.0, 0.0, 0.0);
+		glutSolidCone(0.08,0.5,10,2);
+		
+	 
+		# void computePos(float deltaMove) 
+	 
+		x += deltaMove * lx * 0.1;
+		z += deltaMove * lz * 0.1;
+		
+
+
 
 	""" Application class entry point
 	"""
 	def main(self):
 		global window
 		glutInit(sys.argv)
-		glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH) #double buffered - draw buffer in background altogether when done. Smoother output than single buffer, display as you draw
+		glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 		glutInitWindowSize(640, 480)
 		glutInitWindowPosition(0, 0)
 		window = glutCreateWindow("Simple GLUT Window")
-		glutIdleFunc(self.updateScene) #update every chance it gets
-		glutDisplayFunc(self.drawScene) #
+		glutIdleFunc(self.updateScene)
+		glutDisplayFunc(self.drawScene)
 		self.initGL(640, 480)
-		glutMainLoop() #infinite loop until program quits
+		glutMainLoop()
 
 # If this is the main application file, run the demo application
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import cv
-import cv2
 import numpy as np
 
 def is_rect_nonzero(r):
@@ -12,7 +11,7 @@ class CamShiftDemo:
 
     def __init__(self):
         self.capture = cv.CaptureFromCAM(0)
-        cv.NamedWindow( "CamShiftDemo", )
+        cv.NamedWindow( "CamShiftDemo", cv.CV_WINDOW_NORMAL)
         cv.NamedWindow( "Histogram", 1 )
         cv.SetMouseCallback( "CamShiftDemo", self.on_mouse)
 
@@ -25,6 +24,8 @@ class CamShiftDemo:
 
         self.drag_start = None      # Set to (x,y) when mouse starts drag
         self.track_window = None    # Set to rect when the mouse drag finishes
+
+# print instructions in terminal 
 
         # print( "Keys:\n"
         #     "    ESC - quit the program\n"
@@ -106,40 +107,30 @@ class CamShiftDemo:
             elif self.track_window and is_rect_nonzero(self.track_window):
                 cv.EllipseBox(frame, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
 
-                # print track_box (center, size, angle)
-                # cv.Circle(frame, frame.GetSize/2, 20, 3, 8, 0)
-                # cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255)
-
-                #attempt 1
-                # coordinates = cv.RotatedRect(track_box.center)
-                # print coordinates
-
-                #attempt 2
-                # # calculating centroid (x,y) and area (z)
-                # gray_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
-                # copy_frame = cv.CreateImage(cv.GetSize(frame), 8, 3)
-                # # cv.CvtColor(frame, hsv, cv.CV_BGR2HSV)   
-                # cv.CvtColor(copy_frame, gray_frame, cv.CV_BGR2GRAY)
-                # c = Contour(gray_frame, contour)
-                # # # point_x = c.centroid[0]
-                # # # point_y = c.centroid[1]
-                # # # assuming user is 1ft away from center of projection, 
-                # # # area of ellipse = math.pi * w/2 * h/2
-                # # # z = c.area 
-                # # # point_z = 
-                # print "this should be the list of centroid coordinates"
-                # print c.centroid
-                # # # print c.
-
-                #attempt 3
-                # circle(frame,track_box.center,5,Scalar(0,255,0))
-                # print track_box.center.x
-                # print track_box.center.y
-
-                center= track_box[0]
+# find centroid coordinate (x,y) and area (z)
+                selection_centroid = track_box[0]
+                xposition = selection_centroid[0]
+                yposition = selection_centroid[1]
                 width_height = track_box[1]
-                print "centroid is: " + str(center)
-                # print "width and height is: " + str(lower_right_corner)
+
+
+# writes output of coordinates to seed file
+                # with open('seed.txt', 'a') as f:
+                #     value = (xposition, yposition)
+                #     s = str(value) + '\n'
+                #     f.write(s)
+                #     # f.write('end_of_session')
+                # f.close()
+
+# print outs
+                print "x: " + str(xposition)
+                print yposition
+                selection_area = width_height[0]*width_height[1]
+                # print "The width is: " + str(width_height[0]) + " The height is: " + str(width_height[1])
+                # print "centroid is: " + str(selection_centroid)
+                # return "centroid is: " + str(selection_centroid)
+                print "area is: " + str(selection_area)
+                # return "area is: " + str(selection_area)
 
             if not backproject_mode:
                 cv.ShowImage( "CamShiftDemo", frame )
@@ -147,17 +138,18 @@ class CamShiftDemo:
                 cv.ShowImage( "CamShiftDemo", backproject)
             cv.ShowImage( "Histogram", self.hue_histogram_as_image(hist))
 
-            c = cv.WaitKey(7)
-            if c == 27:
+            c = cv.WaitKey(10)
+            if c == 27: # escape key
                 break
-            elif c == ord("b"):
+            elif c == ord("b"): # show backproject mode with "b" key
                 backproject_mode = not backproject_mode
-
-
-
-
 
 
 if __name__=="__main__":
     demo = CamShiftDemo()
     demo.run()
+
+
+
+
+
