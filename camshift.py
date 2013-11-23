@@ -114,7 +114,7 @@ class CamShiftDemo:
                 width_height = track_box[1]
 
 
-# writes output of coordinates to seed file
+# writes output of coordinates to seed file if needed
                 # with open('seed.txt', 'a') as f:
                 #     value = (xposition, yposition)
                 #     s = str(value) + '\n'
