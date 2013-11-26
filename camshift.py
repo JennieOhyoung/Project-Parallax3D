@@ -109,6 +109,7 @@ class CamShiftDemo:
 
 # find centroid coordinate (x,y) and area (z)
                 selection_centroid = track_box[0]
+                global xposition
                 xposition = selection_centroid[0]
                 yposition = selection_centroid[1]
                 width_height = track_box[1]
@@ -124,7 +125,7 @@ class CamShiftDemo:
 
 # print outs
                 print "x: " + str(xposition)
-                print yposition
+                print "y: " + str(yposition)
                 selection_area = width_height[0]*width_height[1]
                 # print "The width is: " + str(width_height[0]) + " The height is: " + str(width_height[1])
                 # print "centroid is: " + str(selection_centroid)

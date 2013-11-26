@@ -41,6 +41,9 @@ def DetectFace(image, faceCascade):
             pt1 = (int(x * image_scale), int(y * image_scale))
             pt2 = (int((x + w) * image_scale), int((y + h) * image_scale))
             cv.Rectangle(image, pt1, pt2, cv.RGB(255, 0, 0), 5, 8, 0)
+            centroid = (int((x+(w/2)) * image_scale), int((y+(h/2)) * image_scale))
+            print centroid
+
  
     return image
  
@@ -62,4 +65,4 @@ while (cv.WaitKey(15)==-1):
     image = DetectFace(img, faceCascade)
     cv.ShowImage("face detection test", image)
  
-cv.ReleaseCapture(capture)
+# cv.ReleaseCapture(capture)
