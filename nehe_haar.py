@@ -16,14 +16,17 @@ from OpenGL.GL import shaders
 from OpenGLContext import testingcontext
 BaseContext = testingcontext.getInteractive()
 
+FACE_CASCADE = cv.Load("haarcascade_frontalface_alt.xml")
+        
 """ Rendering Context with custom viewpoint and render. Note: will have slightly different results as OpenGLContext automatically enables lighting.
 """
 class TestContext(BaseContext):
 
     def __init__(self):
         print "GL is running!"
-        self.centroid = (640, 360)
-
+        self.last_face_centroid = (0, 0)
+        self.capture = cv.CaptureFromCAM(0)
+        
     def initGL(self, width, height):
         # This part only runs once, the setup of my surrounding. 
         glClearColor(0.0, 0.0, 0.0, 1.0) #rgba (alpha is transparency)
@@ -39,9 +42,9 @@ class TestContext(BaseContext):
 # eye at origin, reference point at -5z, direction of up vector at y (tilt)
         # print xposition
         # print yposition
-        gluLookAt((self.centroid[0]-640)/100, (self.centroid[1]-360)/100, 0.0,
-            0.0, 0.0, -1.0,
-            0.0, 1.0, 0.0)
+        # gluLookAt((self.centroid[0]-640)/100, (self.centroid[1]-360)/100, 0.0,
+            # 0.0, 0.0, -1.0,
+            # 0.0, 1.0, 0.0)
         # (centroid[0]-640)/100, (centroid[1]-360)/100
 
 
@@ -54,6 +57,7 @@ class TestContext(BaseContext):
     
 
     def render(self, mode=0):
+        print "RENDERING"
         # This is the part that loops over and over
         """Render the geometry for the scene."""
         # BaseContext.render(self,mode) <-- makes screen blank again
@@ -97,6 +101,9 @@ class TestContext(BaseContext):
         self.drawPyramid()
         glPopMatrix()
 
+        glutSwapBuffers()
+
+
     def drawPyramid(self):
         glBegin(GL_TRIANGLES);
         glColor3f(1.0,0.0,0.0)
@@ -125,76 +132,39 @@ class TestContext(BaseContext):
         glVertex3f(-1.0,-1.0, 1.0);
         glEnd()
 
-    def update(self, img, faceCascade):
-        # so that we display what's being rendered on the back buffer
-        min_size = (20,20)
-        image_scale = 2
-        haar_scale = 1.1
-        min_neighbors = 3
-        haar_flags = 0
-     
-        # capture = cv.CaptureFromCAM(0)
-        # faceCascade = cv.Load("haarcascade_frontalface_alt.xml")
-        # img = cv.QueryFrame(capture)
-        # image = update(img, faceCascade)
+
+    def update(self):
+        # Get the image from the camera
+        img = get_image_from_camera(self.capture)
+        print "Got an image!"
+        # Detect face position
+        face_centroid = detect_faces(img)
+        # print "Found a face!", face_centroid
+        
+        if not face_centroid:
+            face_centroid = self.last_face_centroid
+        
+        self.last_face_centroid = face_centroid
 
 
-        # Allocate the temporary images
-        grayscale = cv.CreateImage((image.width, image.height), 8, 1)
-        smallImage = cv.CreateImage(
-                (
-                    cv.Round(image.width / image_scale),
-                    cv.Round(image.height / image_scale)
-                ), 8 ,1)
-     
-        # Convert color input image to grayscale
-        cv.CvtColor(image, grayscale, cv.CV_BGR2GRAY)
-     
-        # Scale input image for faster processing
-        cv.Resize(grayscale, smallImage, cv.CV_INTER_LINEAR)
-     
-        # Equalize the histogram
-        cv.EqualizeHist(smallImage, smallImage)
-     
-        # Detect the faces
-        faces = cv.HaarDetectObjects(
-                smallImage, faceCascade, cv.CreateMemStorage(0),
-                haar_scale, min_neighbors, haar_flags, min_size
-            )
-     
-        # If faces are found
-        if faces:
-            for ((x, y, w, h), n) in faces:
-                # the input to cv.HaarDetectObjects was resized, so scale the
-                # bounding box of each face and convert it to two CvPoints
-                pt1 = (int(x * image_scale), int(y * image_scale))
-                pt2 = (int((x + w) * image_scale), int((y + h) * image_scale))
-                # cv.Rectangle(image, pt1, pt2, cv.RGB(255, 0, 0), 5, 8, 0)
-                self.centroid = (int((x+(w/2)) * image_scale), int((y+(h/2)) * image_scale))
-                # print centroid
+        # Update camera
+        self.update_camera(face_centroid)
+        print "Uhhh... updated camera?"
+
+        # Redraw
+        glutPostRedisplay()
+        print "It redrew.. maybe?"
 
 
-        gluLookAt((self.centroid[0]-640)/100, (self.centroid[1]-360)/100, 0.0,
+    def update_camera(self, centroid):
+        gluLookAt((centroid[0]-640)/100, (centroid[1]-360)/100, 0.0,
             0.0, 0.0, -1.0,
             0.0, 1.0, 0.0)
 
-         
-        # while (cv.WaitKey(15)==-1):
-        # img = cv.QueryFrame(capture)
-        # image = DetectFace(img, faceCascade)
-        # cv.ShowImage("face detection test", image)
+    def get_camera_image(self):
+        return cv.QueryFrame(self.capture);
 
-        glutPostRedisplay()
-
-    def main(self):
-        global window
-        global image
-
-        capture = cv.CaptureFromCAM(0)
-        faceCascade = cv.Load("haarcascade_frontalface_alt.xml")
-        img = cv.QueryFrame(capture)
-        self.image = self.update(img, faceCascade)
-
+    def setup_window(self):
         glutInit(sys.argv)
         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)#double buffered - draw buffer in background altogether when done. Smoother output than single buffer, display as you draw
         glutInitWindowSize(1280,810)
@@ -203,10 +173,75 @@ class TestContext(BaseContext):
         glutIdleFunc(self.update)
         glutDisplayFunc(self.render)
         self.initGL(1280,810)
-        glutMainLoop() #infinite loop until program quits
+
+
+def main():
+    context = TestContext()
+    context.setup_window()
+    # img = cv.QueryFrame(capture)
+    # self.image = self.update(img, faceCascade)
+    glutMainLoop() #infinite loop until program quits
+
+
+def get_image_from_camera(capture):
+    img = cv.QueryFrame(capture)
+    return img
+
+def detect_faces(img):
+    image_scale = 2
+    haar_scale = 1.1
+    min_neighbors = 3
+    haar_flags = 0
+    min_size = (20,20)
+
+    # Creating a grayscale image to do the calculation on
+    grayscale = cv.CreateImage((img.width, img.height), 8, 1)
+    cv.CvtColor(img, grayscale, cv.CV_BGR2GRAY)
+    
+    # scaling the image by the image_scale variable to speed up
+    smallImage = cv.CreateImage(
+            (
+                cv.Round(img.width / image_scale),
+                cv.Round(img.height / image_scale)
+            ), 8 ,1)
+    cv.Resize(grayscale, smallImage, cv.CV_INTER_LINEAR)
+ 
+    # Enhances contrast in the image
+    cv.EqualizeHist(smallImage, smallImage)
+ 
+    # Detect the faces
+    faces = cv.HaarDetectObjects(
+            smallImage, FACE_CASCADE, cv.CreateMemStorage(0),
+            haar_scale, min_neighbors, haar_flags, min_size
+        )
+
+    if not faces:
+        return None
+
+    def compare_area(f1, f2):
+        area1 = f1[0][2] * f1[0][3]
+        area2 = f2[0][2] * f2[0][3]
+        return area1 - area2
+
+    sorted_faces = sorted(faces, cmp=compare_area)
+    biggest_face = sorted_faces[-1]
+    face_centroid = get_centroid(biggest_face, image_scale)
+
+    return face_centroid
+    
+
+def get_centroid(face, image_scale):
+    ((x, y, w, h), n) = face
+
+    pt1 = (int(x * image_scale), int(y * image_scale))
+    pt2 = (int((x + w) * image_scale), int((y + h) * image_scale))
+
+    centroid = (int((x+(w/2)) * image_scale), int((y+(h/2)) * image_scale))
+    return centroid
 
 
 if __name__ == "__main__":
-    TestContext().main()
+    main()
+    # TestContext().main()
 
 

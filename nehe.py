@@ -221,7 +221,7 @@ class TestContext(BaseContext):
         glutInitWindowSize(1280,810)
         glutInitWindowPosition(0, 0)
         window = glutCreateWindow("Simple Window")
-        glutDisplayFunc(self.render) #
+        glutDisplayFunc(self.render)
         glutIdleFunc(self.update)
         self.initGL(1280,810)
         glutMainLoop() #infinite loop until program quits
