@@ -36,7 +36,7 @@ class TestContext(BaseContext):
 # eye at origin, reference point at -5z, direction of up vector at y (tilt)
         # print xposition
         # print yposition
-        gluLookAt(0.0, 0.0, 0.0,
+        gluLookAt(0.2, 0.0, 0.0,
             0.0, 0.0, -1.0,
             0.0, 1.0, 0.0)
 

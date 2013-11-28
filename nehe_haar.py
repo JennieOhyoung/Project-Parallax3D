@@ -11,8 +11,6 @@ from OpenGL.arrays import vbo
 from OpenGLContext.arrays import *
 from OpenGL.GL import shaders
 
-# from camshift import *
-
 from OpenGLContext import testingcontext
 BaseContext = testingcontext.getInteractive()
 
@@ -23,8 +21,8 @@ FACE_CASCADE = cv.Load("haarcascade_frontalface_alt.xml")
 class TestContext(BaseContext):
 
     def __init__(self):
-        print "GL is running!"
-        self.last_face_centroid = (0, 0)
+        # print "GL is running!"
+        self.last_face_centroid = (640, 360)
         self.capture = cv.CaptureFromCAM(0)
         
     def initGL(self, width, height):
@@ -35,7 +33,7 @@ class TestContext(BaseContext):
         # glShadeModel(GL_SMOOTH) 
         glViewport(0, 0, width, height) # setup viewport and perspective model. Specify the lower left corner of the viewport rectangle, in pixels with X and Y. width and height = glut window size.
         glMatrixMode(GL_PROJECTION) #Applies subsequent matrix operations to the projection matrix stack. Other stacks are modelview, texture, color
-        glLoadIdentity() #clears up previous mat
+        # glLoadIdentity() #clears up previous mat
 
 
 # set up camera
@@ -57,7 +55,7 @@ class TestContext(BaseContext):
     
 
     def render(self, mode=0):
-        print "RENDERING"
+        # print "RENDERING"
         # This is the part that loops over and over
         """Render the geometry for the scene."""
         # BaseContext.render(self,mode) <-- makes screen blank again
@@ -65,7 +63,6 @@ class TestContext(BaseContext):
 
         # glutSolidSphere(0.75,20,20);
         # BaseContext.render
-        glLoadIdentity()
         
 # draw ground
         glPushMatrix()
@@ -83,23 +80,25 @@ class TestContext(BaseContext):
 # draw pyramid
         glPushMatrix()
         glTranslatef(-5.0,0.0,-50.0) #Moves the drawing origin z units into the screen and x units to the left
-        glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
+        # glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
         self.drawPyramid()
         glPopMatrix()
 
 # draw pyramid2
         glPushMatrix()
         glTranslatef(0.6,0.0,-5.0)
-        glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
+        # glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
         self.drawPyramid()
         glPopMatrix()
 
 # draw pyramid3
         glPushMatrix()
         glTranslatef(-3, 0.0,-10.0)
-        glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
+        # glRotated(time.time()%(2.0)/1 * 360, 0,1,0)
         self.drawPyramid()
         glPopMatrix()
+
+
 
         glutSwapBuffers()
 
@@ -132,37 +131,60 @@ class TestContext(BaseContext):
         glVertex3f(-1.0,-1.0, 1.0);
         glEnd()
 
-
     def update(self):
         # Get the image from the camera
         img = get_image_from_camera(self.capture)
-        print "Got an image!"
+        print "Got image."
         # Detect face position
         face_centroid = detect_faces(img)
         # print "Found a face!", face_centroid
         
         if not face_centroid:
+            print "no face detected"
             face_centroid = self.last_face_centroid
         
-        self.last_face_centroid = face_centroid
+        print face_centroid
+        # self.last_face_centroid = face_centroid
+        # print self.centroid
+        
 
+        # centroid = get_centroid(faces, 2)
+        # if not centroid:
+        #     centroid = self.last_centroid
+        # self.last_centroid = centroid
 
         # Update camera
         self.update_camera(face_centroid)
-        print "Uhhh... updated camera?"
+        # print "Uhhh... updated camera?"
 
         # Redraw
+        
+        # glutPostOverlayRedisplay()
         glutPostRedisplay()
-        print "It redrew.. maybe?"
+        # print "Got redraw."
 
 
-    def update_camera(self, centroid):
-        gluLookAt((centroid[0]-640)/100, (centroid[1]-360)/100, 0.0,
+    def update_camera(self, face_centroid):
+        # print "Updated camera."
+        xposition = (face_centroid[0]-640)/float(1000)
+        yposition = (face_centroid[1]-360)/float(1000)
+
+        gluLookAt(xposition, yposition, 0.0,
             0.0, 0.0, -1.0,
             0.0, 1.0, 0.0)
 
-    def get_camera_image(self):
-        return cv.QueryFrame(self.capture);
+        print "x is: " + str(xposition) + "y is: " + str(yposition)
+
+        # gluPerspective(45.0, float(1280)/float(810), 1.0, 500.0) 
+
+        # glutPostRedisplay()
+        #(centroid[0]-640)/100, (centroid[1]-360)/100
+        # (face_centroid[0]-640)/100, (face_centroid[1]-360)/100
+        # print centroid[0]
+        # print centroid[1]
+
+    # def get_camera_image(self):
+    #     return cv.QueryFrame(self.capture)
 
     def setup_window(self):
         glutInit(sys.argv)
@@ -173,15 +195,7 @@ class TestContext(BaseContext):
         glutIdleFunc(self.update)
         glutDisplayFunc(self.render)
         self.initGL(1280,810)
-
-
-def main():
-    context = TestContext()
-    context.setup_window()
-    # img = cv.QueryFrame(capture)
-    # self.image = self.update(img, faceCascade)
-    glutMainLoop() #infinite loop until program quits
-
+        glutMainLoop()
 
 def get_image_from_camera(capture):
     img = cv.QueryFrame(capture)
@@ -210,6 +224,7 @@ def detect_faces(img):
     cv.EqualizeHist(smallImage, smallImage)
  
     # Detect the faces
+    global faces
     faces = cv.HaarDetectObjects(
             smallImage, FACE_CASCADE, cv.CreateMemStorage(0),
             haar_scale, min_neighbors, haar_flags, min_size
@@ -221,6 +236,8 @@ def detect_faces(img):
     def compare_area(f1, f2):
         area1 = f1[0][2] * f1[0][3]
         area2 = f2[0][2] * f2[0][3]
+        # print f1
+        # print f2
         return area1 - area2
 
     sorted_faces = sorted(faces, cmp=compare_area)
@@ -230,8 +247,8 @@ def detect_faces(img):
     return face_centroid
     
 
-def get_centroid(face, image_scale):
-    ((x, y, w, h), n) = face
+def get_centroid(faces, image_scale):
+    ((x, y, w, h), n) = faces
 
     pt1 = (int(x * image_scale), int(y * image_scale))
     pt2 = (int((x + w) * image_scale), int((y + h) * image_scale))
@@ -239,6 +256,12 @@ def get_centroid(face, image_scale):
     centroid = (int((x+(w/2)) * image_scale), int((y+(h/2)) * image_scale))
     return centroid
 
+def main():
+    context = TestContext()
+    context.setup_window()
+    # img = cv.QueryFrame(capture)
+    # self.image = self.update(img, faceCascade)
+    glutMainLoop() #infinite loop until program quits
 
 if __name__ == "__main__":
     main()
