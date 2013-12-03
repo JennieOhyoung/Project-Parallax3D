@@ -65,6 +65,7 @@ class CamShiftDemo:
             xmax = max(x, self.drag_start[0])
             ymax = max(y, self.drag_start[1])
             self.selection = (xmin, ymin, xmax - xmin, ymax - ymin)
+            print "selection is" + str(self.selection)
 
     def run(self):
         hist = cv.CreateHist([180], cv.CV_HIST_ARRAY, [(0,180)], 1 )
@@ -83,6 +84,7 @@ class CamShiftDemo:
 
             # Run the cam-shift
             cv.CalcArrBackProject( [self.hue], backproject, hist )
+
             if self.track_window and is_rect_nonzero(self.track_window):
                 crit = ( cv.CV_TERMCRIT_EPS | cv.CV_TERMCRIT_ITER, 10, 1)
                 (iters, (area, value, rect), track_box) = cv.CamShift(backproject, self.track_window, crit)
@@ -99,6 +101,7 @@ class CamShiftDemo:
                 x,y,w,h = self.selection
                 cv.Rectangle(frame, (x,y), (x+w,y+h), (0,0,255))
 
+                # print self.hue
                 sel = cv.GetSubRect(self.hue, self.selection )
                 cv.CalcArrHist( [sel], hist, 0)
                 (_, max_val, _, _) = cv.GetMinMaxHistValue( hist)
