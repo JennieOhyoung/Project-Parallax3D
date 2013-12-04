@@ -21,6 +21,7 @@ FACE_CASCADE = cv.Load("haarcascade_frontalface_alt.xml")
 class TestContext(BaseContext):
     xposition = 0.0
     yposition = 0.0
+    zposition = 0.0
     last_face_centroid = (640, 360)
 
     def __init__(self):
@@ -28,6 +29,9 @@ class TestContext(BaseContext):
         self.capture = cv.CaptureFromCAM(0)
         
     def initGL(self, width, height):
+        globAmb = [0.3, 0.3, 0.3, 1.0]
+        lightAmb = [0.0, 0.0, 0.0, 1.0]
+        lightDifAndSpec = [0.7, 0.7, 0.7, 1.0]
         # This part only runs once, the setup of my surrounding. 
         glClearColor(0.0, 0.0, 0.0, 1.0) #rgba (alpha is transparency)
         glClearDepth(1.0) #depth buffer- constraint where closer pixle has higher priority when drawn. 
@@ -41,8 +45,16 @@ class TestContext(BaseContext):
         gluPerspective(45.0, float(width)/float(height), 1.0, 500.0) #(angle, ratio, distance from viewer to near plane, distance from viewer to far plane. aka frustum perspective
         
         glMatrixMode(GL_MODELVIEW) #glMatrixMode sets the current matrix mode: modelview, projection, texture or color
-        glLoadIdentity()
-        glDisable(GL_LIGHTING) # context automatically enables lighting to avoid a common class of new user errors where unlit geometry does not appear due to lack of light.
+        
+        # glLoadIdentity()
+        glEnable(GL_LIGHTING)
+        glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec)
+        glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec)
+        glEnable(GL_LIGHT0)
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globAmb)
+        glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE)
+        # glDisable(GL_LIGHTING) # context automatically enables lighting to avoid a common class of new user errors where unlit geometry does not appear due to lack of light.
         #glEnable( GL_CULL_FACE ) #Prevents OpenGL from removing faces which face backward
         glEnable( GL_DEPTH_TEST )
         glDepthFunc( GL_LEQUAL )
@@ -61,10 +73,32 @@ class TestContext(BaseContext):
 
         # setup the camera position
         glLoadIdentity();
-        gluLookAt(-self.xposition, -self.yposition, 0.0,
+        gluLookAt(self.xposition, self.yposition, 0.0,
             -self.xposition, -self.yposition, -10.0,
             0.0, 1.0, 0.0)
-        
+
+#lighting
+        glPushMatrix()
+        pos = [0, 20, 0, 1]
+        direction = [0.0, -1.0, 0.0]
+        spotAngle = 20
+        glLightfv(GL_LIGHT0, GL_POSITION, pos)
+        glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, spotAngle)
+        glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, direction)
+        glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2)
+
+        glPushMatrix();
+        glDisable(GL_LIGHTING)
+        glTranslate(pos[0], 0.5* pos[1], pos[2])
+        glRotatef(-90.0, 1.0, 0.0, 0.0)
+        glColor3f(1.0, 1.0, 1.0)
+        PI = 3.141592
+        glutWireCone(3.0 * np.tan( spotAngle/180.0 * PI ), pos[1], 10, 6)
+        glEnable(GL_LIGHTING)
+        glPopMatrix();
+
+
+
 # draw ground
         glPushMatrix()
         glTranslatef(0.0,0.0,-100.0)
@@ -161,6 +195,17 @@ class TestContext(BaseContext):
         glEnd()
 
         # print "render time is ", time.clock() - render_time
+
+    # def Lights (self, mode = 0):
+    #     """Setup the global (legacy) lights"""
+    #     if self.lightsOn:
+    #         glEnable( GL_LIGHTING )
+    #         glEnable(GL_LIGHT1)
+    #         glDisable(GL_LIGHT0)
+    #     else:
+    #         glDisable( GL_LIGHTING )
+    #         glDisable(GL_LIGHT1)
+    #         glDisable(GL_LIGHT0)
 
     def update(self):
         update_time = time.clock()

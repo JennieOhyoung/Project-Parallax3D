@@ -7,3 +7,10 @@ Track user face with webcam and interpret centroid coordinates as camera positio
 
 Project tracker on Google Doc:
 https://docs.google.com/spreadsheet/ccc?key=0Aua__-fzIcRYdGZ2UzVzNzJRamVCM2VUbTl1UE1wOFE&usp=sharing
+
+
+![ScreenShot](https://raw.github.com/jennieohyoung/Project-Parallax3D/tree/master/screenshots/2.png)
+
+![ScreenShot](https://raw.github.com/jennieohyoung/Project-Parallax3D/tree/master/screenshots/3.png)
+
+![ScreenShot](https://raw.github.com/jennieohyoung/Project-Parallax3D/tree/master/screenshots/4.png)
